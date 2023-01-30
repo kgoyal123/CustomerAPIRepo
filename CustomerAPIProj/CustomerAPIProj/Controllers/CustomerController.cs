@@ -3,6 +3,7 @@ using CustomerAPIProj.Models.Domain;
 using CustomerAPIProj.Models.DTO;
 using CustomerAPIProj.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Reflection.Metadata.Ecma335;
 
 namespace CustomerAPIProj.Controllers
@@ -55,6 +56,10 @@ namespace CustomerAPIProj.Controllers
         [HttpPost]
         public async Task<IActionResult> AddCustomerAsync(Models.DTO.AddCustomerRequest addCustomerRequest)
         {
+            if(!ValidateAddCustomerAsync(addCustomerRequest))
+            {
+                return BadRequest();
+            }
             var customer = new Models.Domain.Customer()
             {
                 CustName = addCustomerRequest.CustName,
@@ -113,6 +118,26 @@ namespace CustomerAPIProj.Controllers
            };
             return Ok(customerDTO);
         }
+        #region private methods
+        private bool ValidateAddCustomerAsync(Models.DTO.AddCustomerRequest addCustomerRequest)
+        {
+            if(addCustomerRequest==null)
+            {
+                ModelState.AddModelError(nameof(addCustomerRequest), $"Add Customer Request is required");
+                return false;
+            }
+            if(string.IsNullOrWhiteSpace(addCustomerRequest.CustName))
+            {
+                ModelState.AddModelError(nameof(addCustomerRequest.CustName), $"{nameof(addCustomerRequest.CustName)} cannot be null or empty");
+                return false;
+            }
+            if(ModelState.ErrorCount>0)
+            {
+                return false;
+            }
+            return true;
+        }
+        #endregion
     }
 
 }
