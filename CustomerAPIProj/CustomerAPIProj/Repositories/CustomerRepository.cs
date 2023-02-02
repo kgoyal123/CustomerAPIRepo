@@ -1,60 +1,69 @@
-﻿using CustomerAPIProj.Data;
-using CustomerAPIProj.Models.Domain;
-using Microsoft.EntityFrameworkCore;
-
+﻿using Customer = CustomerAPIProj.Models.Domain.Customer;
 namespace CustomerAPIProj.Repositories
 {
     public class CustomerRepository : ICustomerRepository
     {
-        private readonly CustomerDBContext ncustomerDBContext;
-        public CustomerRepository(CustomerDBContext ncustomerDBContext)
-        {
-            this.ncustomerDBContext = ncustomerDBContext;
-        }
+        private readonly static Dictionary<int, Customer> dictionary = new Dictionary<int, Customer>();
+        
+        private readonly Customer? values;
+             
 
-        public async Task<Customer> AddAsynch(Customer customer)
+        public async Task<Customer> AddCustomer(Customer customer)
         {
-            customer.Id = Guid.NewGuid();
-            await ncustomerDBContext.AddAsync(customer);
-            await ncustomerDBContext.SaveChangesAsync();
+            await Task.Run(() =>
+            {
+                dictionary.TryAdd(customer.Id, new Customer{ CustName = customer.CustName, CustAge = customer.CustAge, Email = customer.Email });
+            });
             return customer;
         }
 
-        public async Task<Customer> DeleteAsync(Guid Id)
-        {
-            var customer = await ncustomerDBContext.Customers.FirstOrDefaultAsync(x => x.Id == Id);
-            if(customer==null)
-            {
-                return null;
+            Task<bool> ICustomerRepository.DeleteCustomer(int Id)
+             {
+                var customer = dictionary.GetValueOrDefault(Id);
+                if (customer == null)
+                {
+                    return Task.FromResult(false);
+                }
+                dictionary.Remove(Id);
+                return Task.FromResult(true);
             }
-            ncustomerDBContext.Customers.Remove(customer);
-            await ncustomerDBContext.SaveChangesAsync();
-            return customer;
-        }
 
-        public async Task<IEnumerable<Customer>> GetAllAsync()
+        public  List<Customer> GetAllCustomers()
         {
-            return await ncustomerDBContext.Customers.ToListAsync();
+
+            return  dictionary.Values.ToList();
 
         }
 
-        public async Task<Customer>GetAsync(Guid Id)
+        public async Task<Models.Domain.Customer?> GetCustomer(int Id)
         {
-           return await ncustomerDBContext.Customers.FirstOrDefaultAsync(x=>x.Id==Id);
-        }
-
-        public async Task<Customer> UpdateAsynch(Guid Id, Customer customer)
-        {
-            var existingcustomer=await ncustomerDBContext.Customers.FirstOrDefaultAsync(x=>x.Id== Id);
-            if(existingcustomer == null)
+            var customer1 = dictionary.Values.FirstOrDefault(c => c.Id == Id);
+            await Task.Run(() =>
             {
+                var customer=dictionary.GetValueOrDefault(Id);
+            });
+            if (customer1 == null)
                 return null;
-            }
-            existingcustomer.CustName = customer.CustName;
-            existingcustomer.CustAge = customer.CustAge;
-            existingcustomer.Email = customer.Email;
-            await ncustomerDBContext.SaveChangesAsync();
-            return existingcustomer;
+            else
+                return (Customer?)customer1;
         }
+
+        public async Task<Customer?> UpdateCustomer(Customer customer)
+        {
+            var customer1 = dictionary.Values.FirstOrDefault(c => c.Id == customer.Id);
+            if (customer1 == null)
+                return null;
+            await Task.Run(() =>
+            {
+                if (customer1 != null)
+                {
+                    customer1.CustName = customer.CustName;
+                    customer1.CustAge = customer.CustAge;
+                }
+                
+            });
+            return customer1;
+        }
+
     }
 }

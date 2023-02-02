@@ -1,5 +1,7 @@
 using CustomerAPIProj.Data;
 using CustomerAPIProj.Repositories;
+using CustomerAPIProj.Services;
+using CustomerAPIProj.Services.IServices;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,7 +16,8 @@ builder.Services.AddDbContext<CustomerDBContext>(options =>
 {
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
-builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddTransient<ICustomerRepository, CustomerRepository>();
+builder.Services.AddTransient<ICustomer, CustomerService>();
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 var app = builder.Build();
 

@@ -1,8 +1,8 @@
 ﻿using CustomerAPIProj.Models.Domain;
 
-namespace CustomerAPIProj.Repositories
+namespace CustomerAPIProj.Services.IServices
 {
-    public interface ICustomerRepository
+    public interface ICustomer
     {
         List<Customer> GetAllCustomers();
 
@@ -13,7 +13,5 @@ namespace CustomerAPIProj.Repositories
         Task<bool> DeleteCustomer(int Id);
 
         Task<Customer?> UpdateCustomer(Customer customer);
-
-
     }
 }
