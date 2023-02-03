@@ -5,9 +5,6 @@ namespace CustomerAPIProj.Repositories
     {
         private readonly static Dictionary<int, Customer> dictionary = new Dictionary<int, Customer>();
         
-        private readonly Customer? values;
-             
-
         public async Task<Customer> AddCustomer(Customer customer)
         {
             await Task.Run(() =>
